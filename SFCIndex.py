@@ -1,5 +1,6 @@
 '''
 Author: Neeraj Sirdeshmukh
+Delft University Of Technology, Netherlands 
 '''
 import math
 from math import * 
@@ -24,6 +25,8 @@ class isea_geo(object):
     def __init__(self, lon, lat):
         self.lon = lon 
         self.lat = lat 
+
+# Set constants
 
 M_PI = 3.14159265358979323846
 
@@ -69,8 +72,6 @@ vertex = [isea_geo(0.0,DEG90),
         isea_geo(0.0,-DEG90)
         ]
 
-
-
 E_RAD =0.91843818702186776133
 F_RAD =0.18871053072122403508
 
@@ -99,7 +100,7 @@ icostriangles = [
     isea_geo(DEG108, -E_RAD),
     isea_geo(DEG180, -E_RAD)
     
-        ]
+    ]
 
 # Parameters taken from Snyder (1992)
 TABLE_G = 0.6615845383
@@ -111,8 +112,8 @@ RPRIME = 0.91038328153090290025
 tri_v1 = [0, 0, 0, 0, 0, 0, 6, 7, 8, 9, 10, 2, 3, 4, 5, 1, 11, 11, 11, 11, 11]
 
     
-NEWORIGX = -0.6022955012659694 #TABLE_G * (-1) #old: 
-NEWORIGY = -0.3477354703761901 #TABLE_H * (-2) #old: 
+NEWORIGX = -0.6022955012659694 # TABLE_G * (-1) #old: 
+NEWORIGY = -0.3477354703761901 # TABLE_H * (-2) #old: 
 
 TANTHETA = tan(theta)
 COTTHETA = 1.0 / TANTHETA
@@ -131,11 +132,11 @@ flattening =  1/298.257223563
 
 
 def az_adjustment(triangle):
-    v = vertex[tri_v1[triangle]] #vertex ID of triangle
-    c = icostriangles[triangle] #center of triangle
+    v = vertex[tri_v1[triangle]] # vertex ID of triangle
+    c = icostriangles[triangle] # center of triangle
 
 
-    #Azimuth from vertex to center of triangle
+    # Azimuth from vertex to center of triangle
     adj = atan2(cos(v.lat) * sin(v.lon - c.lon),cos(c.lat) * sin(v.lat)- sin(c.lat) * cos(v.lat) * cos(v.lon - c.lon))
 
     return adj
@@ -183,7 +184,7 @@ def isea_snyder_forward(ll):
             Az_adjust_multiples+=1
 
 
-        #Calculate q from eq 9. 
+        # Calculate q from eq 9. 
         
         q = atan(TANLOWERG/(cos(Az) + (sin(Az)*COTTHETA)))
 
@@ -201,7 +202,6 @@ def isea_snyder_forward(ll):
         
         AG = (Az + G + H - DEG180)
 
-       
         # eq 8 
         
         Azprime = atan2((2.0 * AG), ((RPRIME * RPRIME* TANLOWERG * TANLOWERG) - (2.0 * AG * COTTHETA)))
@@ -235,7 +235,8 @@ def isea_snyder_forward(ll):
 def computeMorton2D(longitude, latitude, res):
     
     point = isea_geo(longitude * DEG2RAD,  latitude * DEG2RAD)
-    #out contains coordinates from center of triangle 
+    
+    # out contains coordinates from center of triangle 
     out, face = isea_snyder_forward(point)
     
     # Find new coordinates of point from lower left/upper left origin
@@ -441,7 +442,6 @@ def computeMorton4D(longitude, latitude, height, timeSec, hrange, trange, res):
     morton4D = ('{0:0' + str((2* res))  + '}').format(total)
 
 
-
     # Convert triangle face number to rhombus face number
     
     if face == 1 or face == 6:
@@ -518,17 +518,17 @@ def decodeMortonToXY(mortonCode):
 
 def decodeMortonToXYH(mortonCode):
     
-    # Get face number and morton code
+    # Get face number and Morton code
     
     face = mortonCode[0] # First number indicates rhombus face!
     morton = mortonCode[1:len(mortonCode)] # String 
-    res = len(morton) #discrete!
+    res = len(morton) # discrete!
     lastDig = int(morton[-1:])
     
 
     
     numXValues = totRange # Amount of possible X values
-    numYValues = totRange# Amount of possible Y values
+    numYValues = totRange # Amount of possible Y values
     numZValues = totRange # Amount of possible Z values
     
     # Compute the X, Y, and Z values on rhombus... markers = middle value
@@ -763,7 +763,7 @@ def MortonToLatLong2D(x,y, face, res):
 
     AzprimeCopy = Azprime
 
-    #Equation 19
+    # Equation 19
     
     AG = (pow(RPRIME,2) * pow(TANLOWERG,2)) / (2 * ((1/(tan(Azprime))) + COTTHETA))
 
@@ -797,7 +797,7 @@ def MortonToLatLong2D(x,y, face, res):
     
     f = dprime / (2.0 * RPRIME * sin(q / 2.0))
 
-    #eq 23, obtain z
+    # eq 23, obtain z
     
     z = 2 * asin((rho)/(2*RPRIME*f))
      
@@ -826,7 +826,7 @@ def MortonToLatLong2D(x,y, face, res):
 
 def MortonToLatLong3D(x,y,h,face, res):
      
-    # Convert h to height above/below ellipsoid
+    # Convert h/Z to height above/below ellipsoid
     
     height = ((-1) * hrange) + ((h / totRange) * (2 * hrange))
 
@@ -933,7 +933,7 @@ def MortonToLatLong3D(x,y,h,face, res):
     AG = (pow(RPRIME,2) * pow(TANLOWERG,2)) / (2 * ((1/(tan(Azprime))) + COTTHETA))
 
 
-    # Iteration, Azprime (plane) converges to Az (sphere)
+    # Iteration, Azprime (plane) converges to Az (ellipsoid)
     
     for i in range(4):
     
@@ -988,6 +988,7 @@ def MortonToLatLong3D(x,y,h,face, res):
     center = icostriangles[face]
     
     lat2, lon2 = vincentyDirect(flattening, R, center.lat * RAD2DEG, center.lon * RAD2DEG, Az * RAD2DEG, z) 
+    
     return lat2, lon2, height
 
 
@@ -1011,7 +1012,8 @@ def MortonToLatLong4D(x,y,h,t, face, res):
     scaledY = (y/ totRange)*(-NEWORIGX*2)
 
 
-    # Convert coordinates from skewed system to Cartesian system (origin at left)
+    # Convert coordinates from skewed system to Cartesian system 
+    # (origin at left of rhombus)
     
     a = np.array([[1,(-1/sqrt(3))], [1,(1/sqrt(3))]])
     b = np.array([scaledX,scaledY]) 
@@ -1137,8 +1139,7 @@ def MortonToLatLong4D(x,y,h,t, face, res):
     f = dprime / (2.0 * RPRIME * sin(q / 2.0))
 
     
-    #eq 23, obtain z- does NOT give the same Z value as the z 
-    # in the ISEA forward projection
+    #eq 23, obtain z
     
     z = 2 * asin((rho)/(2*RPRIME*f))
     
@@ -1171,7 +1172,7 @@ def resolution(beamDiam):
     # area, square meters
     area = ((M_PI/4) * pow(beamDiam,2))
     
-    # area in square millimeters = importance
+    # area in square millimeters = importance of point
     
     areamm = area * 1000000
     
@@ -1256,7 +1257,7 @@ def  vincentyDirect(f, a, phi1, lembda1, alpha12, s ) :
 
         The code has been originally taken from
         https://isis.astrogeology.usgs.gov/IsisSupport/index.php?topic=408.0 in Javascript,
-        but converted into Python by me. 
+        and later converted into Python. 
         """ 
         piD4 = math.atan( 1.0 ) 
         two_pi = piD4 * 8.0 
@@ -1322,57 +1323,59 @@ def  vincentyDirect(f, a, phi1, lembda1, alpha12, s ) :
 
 if __name__ == "__main__":
 
-    # Full resolution number
-    maxRes=33  # sub-mllimeter !
+    # DGGS full-resolution number
+    maxRes=33  # sub-mllimeter precision
     
-    # specify h range above/below surface of Earth (in meters) (fineness in Z)
+    # Specify Z range above/below surface of Earth (in meters)
     hrange = 5000.0
     timeSec = 1140874544
-    # specify t range (seconds, GPS Time) Jan 6, 1980 -- Jan 6, 2018
+    
+    # Specify T range (seconds, GPS Time) Jan 6, 1980 -- Jan 6, 2018
     trange = 1199232018.0
     
-    # total range of values for dimensions
+    # Total range of values for dimensions
     totRange = pow(2,maxRes)
 
-    #Connect to database
+    # Connect to database
     
     try:
         conn = psycopg2.connect("dbname='dggs' user='postgres' host='localhost' password='serengeti'")
-        # commits every transaction by default 
+        # Commits every transaction by default 
         conn.autocommit = True
     except:
         print "I am unable to connect to the database"
 
     cur = conn.cursor()
 
-    #Read ISEA4D stats table, store in list
-    #This is a table containing statistics on each resolution in the DGGS
+    # Read ISEA4D stats table, store in list
+    # This is a table containing statistics on each resolution in the DGGS
 
     df = pandas.read_excel(r'C:\Neeraj\DGGS\ISEA4D\ISEAStats.xlsx', sheet_name='Sheet1')
     mat = df.as_matrix()
     
-    #4th column contains cell areas in sqmeters
+    # 4th column contains cell areas in square meters
     cellAreas = mat[:,4]
      
     p1 = Proj(init='EPSG:28992')
     p2 = Proj(proj='latlong',datum='WGS84')
-    factor = 2.777777777777778 # footprint size multiplication factor for Riegl scanner 
     
-    # path to folder containing LAS files
-    # set as appropriate
+    factor = 2.777777777777778 # Footprint size multiplication factor for Riegl scanner 
+    
+    # Path to folder containing LAS files, set as appropriate
     path = "D:\\PointCloudData\\Tiled5000_2016"
 
     # SQL string into which values to insert will be substituted
     SQL2 = "%s\t%s\t%s\t%s\t%s\t%s\t%s\n"
     
-    # variable to store number of point currently being processed
+    # Variable to store number of point currently being processed
     counter = 0
 
-    # pre-allocate storage in memory for posting 5 million points at once
+    # Pre-allocate storage in memory for posting 5 million points at once
     bigList = [0]* (5000000)
    
-    
     start_time1 = time.time()
+    
+    # Loop through LAS files 
     for fn in os.listdir(path):
         try:
             loc = path + "\\" + fn
@@ -1385,6 +1388,8 @@ if __name__ == "__main__":
         z = inFile.z
         timeGPS = inFile.gps_time       
         
+        # Distances from scanner in meters and millimeters
+        # were stored in Red and Green fields of LAS file 
         disM = inFile.Red
         disMM = inFile.Green
       
@@ -1394,7 +1399,7 @@ if __name__ == "__main__":
             
             totDisM = disM[i] + (disMM[i] / 1000.0)
             bd = (totDisM / factor) /1000.0  # beam diameter in meters
-            resPoint,contPrec = resolution(bd)
+            resPoint, contPrec = resolution(bd)
             
             # Project points to lat/long from RD
 
@@ -1402,7 +1407,7 @@ if __name__ == "__main__":
 
             # Find Morton code
             
-            code4D,code3D = computeMorton4D(lon, lat, height, timeGPS[i], hrange, trange, maxRes)
+            code4D, code3D = computeMorton4D(lon, lat, height, timeGPS[i], hrange, trange, maxRes)
 
             # Create tuple of values 
                 
@@ -1426,15 +1431,17 @@ if __name__ == "__main__":
             
             start_time2 = time.time()
             
-            # this is the fastest existing function in Psycopg2 to bulk-load data from Python to
+            # This is the fastest existing function in Psycopg2 to bulk-load data from Python to
             # PostgreSQL: COPY_FROM
             cur.copy_from(output, 'pointsnew')
 
             output.close()
             
             print("Post time for 5 million points %s seconds ---" % (time.time() - start_time2))
-            # Reset counter
+            
+            # Reset counter variable
             counter = 0
+            
             # Preallocate space for the next 5 million points 
             bigList = [0]* 5000000
 
